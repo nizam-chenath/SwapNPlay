@@ -1,17 +1,26 @@
 const express = require('express');
 const path = require('path');
-const mongoose = require('mongoose');
+const morgan = require('morgan');
+const connectDB = require('./config/db');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const errorHandler = require('./middleware/errorMiddleware');
+const bodyParser = require('body-parser');
 const csrf = require('csurf');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
+// Connect to database
+connectDB();
+
 // Import User model before usage
 const User = require('./models/user');
 
 const app = express();
+
+// Body parser
+app.use(bodyParser.json());
 
 // Middleware setup
 app.use(express.urlencoded({ extended: false })); // Replace body-parser with Express's built-in middleware
@@ -28,20 +37,25 @@ store.on('error', (error) => {
 });
 
 // Set up CSRF protection
-const csrfProtection = csrf();
+// const csrfProtection = csrf();
 
-// Use session middleware
-// app.use(
-//   session({
-//     secret: 'my secret',
-//     resave: false,
-//     saveUninitialized: false,
-//     store: store, // With this, the session data will be stored in MongoDB
-//   })
-// );
+// Dev logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+//Use session middleware
+app.use(
+  session({
+    secret: 'my secret',
+    resave: false,
+    saveUninitialized: false,
+    store: store, // With this, the session data will be stored in MongoDB
+  })
+);
 
 // Use CSRF protection middleware
-app.use(csrfProtection);
+// app.use(csrfProtection);
 
 // Middleware to populate req.user
 app.use((req, res, next) => {
@@ -59,28 +73,29 @@ app.use((req, res, next) => {
     });
 });
 
-// Middleware to set local variables
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
+// Mount routers
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/v1', authRoutes);
+const shopRoutes = require('./routes/shopRoutes');
+app.use('/api/v1', shopRoutes);
+const chatRoutes = require('./routes/chatRoutes');
+app.use('/api/v1', chatRoutes);
+
+// Error handling middleware
+app.use(errorHandler);
 
 // Serve static files
-app.use(express.static(path.join(__dirname, 'public'))); // Ensure 'public' folder is accessible
+app.use(express.static(path.join(__dirname, 'utils'))); // Ensure 'utils' folder is accessible
 
-// Connect to MongoDB and start the server
-mongoose
-  .connect(process.env.MONGO_URI, {
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('Connected to MongoDB!');
-    app.listen(process.env.PORT, () => {
-      console.log(`Server is running on port ${process.env.PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-  });
+
+const PORT = process.env.PORT || 5000;
+
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.log(`Error: ${err.message}`);
+  server.close(() => process.exit(1));
+});
