@@ -6,6 +6,7 @@ export const InnerCard = ({ ad }) => {
   const navigate = useNavigate()
 
   const time = moment(ad.createdAt).fromNow()
+  console.log('ad',ad);
 
   const handleClick = (id) => {
     navigate(`/item/${id}`, { state: ad })
@@ -16,7 +17,8 @@ export const InnerCard = ({ ad }) => {
       <Card style={{ width: '100%', cursor: 'pointer' }}>
         <Card.Img
           variant="top"
-          src={`./uploads/${ad.images[0]}`}
+          // src={`./uploads/${ad.images[0]}`}
+          src={`${ad.imageUrl}`}
           height={300}
           style={{ objectFit: 'cover' }}
         />
@@ -50,9 +52,9 @@ export const InnerCard = ({ ad }) => {
           <Card.Text style={{ fontSize: '25px', fontWeight: 'bold' }}>
             Rs {ad.price}
           </Card.Text>
-          <Card.Text style={{ fontSize: '13px' }}>
+          {/* <Card.Text style={{ fontSize: '13px' }}>
             {ad.location} - {time}
-          </Card.Text>
+          </Card.Text> */}
         </Card.Body>
       </Card>
     </Col>
