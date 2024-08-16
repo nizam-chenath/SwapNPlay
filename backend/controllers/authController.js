@@ -4,7 +4,8 @@ const User = require('../models/user');
 const ErrorHandler = require('../utils/errorHandler');
 
 exports.registerUser = async (req, res) => {
-    const { name, email, password } = req.body;
+  console.log("test>>",req.body)
+    const { fullname, email, password } = req.body;
     try {
       let user = await User.findOne({ email });
       if (user) {
@@ -12,7 +13,7 @@ exports.registerUser = async (req, res) => {
       }
   
       user = new User({
-        name,
+        name: fullname,
         email,
         password,
       });
@@ -67,7 +68,8 @@ exports.postLogin = async (req, res, next)=> {
     
         res.status(200).json({
           success: true,
-          token
+          token,
+          user: req.session.user
         });
       } catch (err) {
         next(new ErrorHandler(err.message, 500));

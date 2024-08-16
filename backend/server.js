@@ -75,11 +75,11 @@ app.use((req, res, next) => {
 
 // Mount routers
 const authRoutes = require('./routes/authRoutes');
-app.use('/api/v1', authRoutes);
+app.use('/api/auth', authRoutes);
 const shopRoutes = require('./routes/shopRoutes');
-app.use('/api/v1', shopRoutes);
+app.use('/api/auth', shopRoutes);
 const chatRoutes = require('./routes/chatRoutes');
-app.use('/api/v1', chatRoutes);
+app.use('/api/auth', chatRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

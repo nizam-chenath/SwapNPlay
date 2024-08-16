@@ -56,15 +56,17 @@ exports.getUserProducts = async (req, res) => {
 };
 
 exports.addProduct = async (req, res) => {
+    console.log(req.body)
     try {
-        const { title, price, description, imageUrl } = req.body;
+        console.log(req.body);
+        const { title, price, description } = req.body;
         const userId = req.session.user._id;
+        console.log(userId);
     
         const newProduct = new Product({
             title,
             price,
             description,
-            imageUrl,
             userId
         });
     
@@ -77,7 +79,7 @@ exports.addProduct = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Server Error'
+            message: 'Server Error Add Product'
         });
     }
 };
